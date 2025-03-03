@@ -319,12 +319,14 @@ const App: React.FC = () => {
   return (
     <div className={`flex h-screen w-screen ${theme.bg}`}>
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col ${theme.sidebar} transition-all duration-300 z-10 shadow-md`}>
+      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col ${theme.sidebar} transition-all duration-300 ease-in-out z-10 shadow-md`}>
         <div className="flex justify-between items-center p-4 border-b border-opacity-20 border-gray-400">
-          {isSidebarOpen && <h1 className="text-xl font-medium text-amber-600">Luhi Tools</h1>}
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isSidebarOpen ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'}`}>
+            <h1 className="text-xl font-medium text-amber-600 whitespace-nowrap">Luhi Tools</h1>
+          </div>
           <button 
             onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="p-1 rounded-lg transition-colors text-gray-500 hover:bg-gray-200 hover:bg-opacity-20"
+            className="p-1 rounded-lg transition-colors text-gray-500 hover:bg-gray-200 hover:bg-opacity-20 flex-shrink-0"
             title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
@@ -350,7 +352,9 @@ const App: React.FC = () => {
               }}
             >
               <div className={activeTool === tool.id ? theme.primaryText : ''}>{tool.icon}</div>
-              {isSidebarOpen && <span className={activeTool === tool.id ? 'font-medium' : ''}>{tool.name}</span>}
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isSidebarOpen ? 'opacity-100 max-w-full' : 'opacity-0 max-w-0'}`}>
+                <span className={`whitespace-nowrap ${activeTool === tool.id ? 'font-medium' : ''}`}>{tool.name}</span>
+              </div>
             </button>
           ))}
         </div>

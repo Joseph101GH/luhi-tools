@@ -8,8 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-# Uncommenting dist to allow committing build files for GitHub Pages
-# dist
+# dist has been removed to allow committing the build files for GitHub Pages
 dist-ssr
 *.local
 

@@ -12,12 +12,7 @@ const App: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [activeTool, setActiveTool] = useState('time');
   const [darkMode, setDarkMode] = useState(false);
-  const [months, setMonths] = useState<MonthData[]>([
-    { name: "January", expected: 168, actual: 160, diff: -8 },
-    { name: "February", expected: 174, actual: 184, diff: 10 },
-    { name: "March", expected: 176, actual: 175, diff: -1 },
-    { name: "April", expected: 168, actual: 172, diff: 4 },
-  ]);
+  const [months, setMonths] = useState<MonthData[]>([]);
 
   const tools = [
     { id: 'time', name: 'Time Calculator', icon: <Clock size={18} /> },
@@ -64,25 +59,39 @@ const App: React.FC = () => {
   // Function to edit a month
   const handleEditMonth = (index: number) => {
     const monthToEdit = months[index];
-    // In a real app, you would show a form/modal here
-    const newExpected = prompt(`Enter new expected hours for ${monthToEdit.name}:`, monthToEdit.expected.toString());
-    const newActual = prompt(`Enter new actual hours for ${monthToEdit.name}:`, monthToEdit.actual.toString());
     
-    if (newExpected !== null && newActual !== null) {
-      const expected = parseFloat(newExpected);
-      const actual = parseFloat(newActual);
-      
-      if (!isNaN(expected) && !isNaN(actual)) {
-        const updatedMonths = [...months];
-        updatedMonths[index] = {
-          ...updatedMonths[index],
-          expected,
-          actual,
-          diff: actual - expected
-        };
-        setMonths(updatedMonths);
-      }
-    }
+    const name = prompt(`Edit month name:`, monthToEdit.name);
+    if (!name) return;
+    
+    // Calculate hours and minutes for expected time
+    const existingExpectedHours = Math.floor(monthToEdit.expected);
+    const existingExpectedMinutes = Math.round((monthToEdit.expected - existingExpectedHours) * 60);
+    
+    // Calculate hours and minutes for actual time
+    const existingActualHours = Math.floor(monthToEdit.actual);
+    const existingActualMinutes = Math.round((monthToEdit.actual - existingActualHours) * 60);
+    
+    const expectedHours = parseInt(prompt(`Enter expected hours for ${name}:`, existingExpectedHours.toString()) || "0", 10);
+    const expectedMinutes = parseInt(prompt(`Enter expected minutes for ${name}:`, existingExpectedMinutes.toString()) || "0", 10);
+    if (isNaN(expectedHours) || isNaN(expectedMinutes)) return;
+    
+    const actualHours = parseInt(prompt(`Enter actual hours for ${name}:`, existingActualHours.toString()) || "0", 10);
+    const actualMinutes = parseInt(prompt(`Enter actual minutes for ${name}:`, existingActualMinutes.toString()) || "0", 10);
+    if (isNaN(actualHours) || isNaN(actualMinutes)) return;
+    
+    // Convert to decimal hours
+    const expected = parseFloat((expectedHours + expectedMinutes / 60).toFixed(2));
+    const actual = parseFloat((actualHours + actualMinutes / 60).toFixed(2));
+    
+    const updatedMonths = [...months];
+    updatedMonths[index] = {
+      ...updatedMonths[index],
+      name,
+      expected,
+      actual,
+      diff: parseFloat((actual - expected).toFixed(2))
+    };
+    setMonths(updatedMonths);
   };
 
   // Function to delete a month
@@ -216,17 +225,26 @@ const App: React.FC = () => {
             className={`${theme.primaryButton} !px-3 !py-2 !rounded-lg !text-sm !flex !items-center !gap-1 !shadow-md`}
             onClick={() => {
               const name = prompt("Enter month name:");
-              const expected = parseFloat(prompt("Enter expected hours:") || "0");
-              const actual = parseFloat(prompt("Enter actual hours:") || "0");
+              if (!name) return;
               
-              if (name && !isNaN(expected) && !isNaN(actual)) {
-                setMonths([...months, {
-                  name,
-                  expected,
-                  actual,
-                  diff: actual - expected
-                }]);
-              }
+              const expectedHours = parseInt(prompt("Enter expected hours:") || "0", 10);
+              const expectedMinutes = parseInt(prompt("Enter expected minutes:") || "0", 10);
+              if (isNaN(expectedHours) || isNaN(expectedMinutes)) return;
+              
+              const actualHours = parseInt(prompt("Enter actual hours:") || "0", 10);
+              const actualMinutes = parseInt(prompt("Enter actual minutes:") || "0", 10);
+              if (isNaN(actualHours) || isNaN(actualMinutes)) return;
+              
+              // Convert to decimal hours
+              const expected = parseFloat((expectedHours + expectedMinutes / 60).toFixed(2));
+              const actual = parseFloat((actualHours + actualMinutes / 60).toFixed(2));
+              
+              setMonths([...months, {
+                name,
+                expected,
+                actual,
+                diff: parseFloat((actual - expected).toFixed(2))
+              }]);
             }}
           >
             <Plus size={16} /> Add Month

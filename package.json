@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "npm run build && copy dist\\index.html dist\\404.html && New-Item -Path \"dist/.nojekyll\" -ItemType File -Force"
+    "deploy": "npm run build && copy dist\\index.html dist\\404.html && echo.> dist\\.nojekyll"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.9",

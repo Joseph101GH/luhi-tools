@@ -8,6 +8,17 @@ interface MonthData {
   diff: number;
 }
 
+// Helper function to format time from decimal hours to hours and minutes
+const formatTime = (decimalHours: number, showMinutes = true): string => {
+  const hours = Math.floor(decimalHours);
+  const minutes = Math.round((decimalHours - hours) * 60);
+  
+  if (showMinutes && minutes > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${hours}h`;
+};
+
 const App: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [activeTool, setActiveTool] = useState('time');
@@ -63,24 +74,21 @@ const App: React.FC = () => {
     const name = prompt(`Edit month name:`, monthToEdit.name);
     if (!name) return;
     
-    // Calculate hours and minutes for expected time
+    // For expected hours, only use whole hours
     const existingExpectedHours = Math.floor(monthToEdit.expected);
-    const existingExpectedMinutes = Math.round((monthToEdit.expected - existingExpectedHours) * 60);
+    const expectedHours = parseInt(prompt(`Enter expected hours for ${name}:`, existingExpectedHours.toString()) || "0", 10);
+    if (isNaN(expectedHours)) return;
     
-    // Calculate hours and minutes for actual time
+    // For actual hours, calculate hours and minutes
     const existingActualHours = Math.floor(monthToEdit.actual);
     const existingActualMinutes = Math.round((monthToEdit.actual - existingActualHours) * 60);
-    
-    const expectedHours = parseInt(prompt(`Enter expected hours for ${name}:`, existingExpectedHours.toString()) || "0", 10);
-    const expectedMinutes = parseInt(prompt(`Enter expected minutes for ${name}:`, existingExpectedMinutes.toString()) || "0", 10);
-    if (isNaN(expectedHours) || isNaN(expectedMinutes)) return;
     
     const actualHours = parseInt(prompt(`Enter actual hours for ${name}:`, existingActualHours.toString()) || "0", 10);
     const actualMinutes = parseInt(prompt(`Enter actual minutes for ${name}:`, existingActualMinutes.toString()) || "0", 10);
     if (isNaN(actualHours) || isNaN(actualMinutes)) return;
     
-    // Convert to decimal hours
-    const expected = parseFloat((expectedHours + expectedMinutes / 60).toFixed(2));
+    // Convert to decimal hours (expected is whole number, actual has minutes)
+    const expected = expectedHours;
     const actual = parseFloat((actualHours + actualMinutes / 60).toFixed(2));
     
     const updatedMonths = [...months];
@@ -203,16 +211,16 @@ const App: React.FC = () => {
           </div>
           <div className={`${theme.statCard} p-4 rounded-lg shadow-md`}>
             <div className={theme.textMuted}>Expected Hours</div>
-            <div className={`text-2xl font-medium ${theme.secondaryText}`}>{totals.expected}</div>
+            <div className={`text-2xl font-medium ${theme.secondaryText}`}>{formatTime(totals.expected, false)}</div>
           </div>
           <div className={`${theme.statCard} p-4 rounded-lg shadow-md`}>
             <div className={theme.textMuted}>Actual Hours</div>
-            <div className={`text-2xl font-medium ${theme.primaryText}`}>{totals.actual}</div>
+            <div className={`text-2xl font-medium ${theme.primaryText}`}>{formatTime(totals.actual)}</div>
           </div>
           <div className={`${theme.statCard} p-4 rounded-lg shadow-md`}>
             <div className={theme.textMuted}>Balance</div>
             <div className={`text-2xl font-medium ${theme.accentText}`}>
-              {totals.diff > 0 ? '+' : ''}{totals.diff}
+              {totals.diff > 0 ? '+' : ''}{formatTime(Math.abs(totals.diff))}
             </div>
           </div>
         </div>
@@ -227,16 +235,17 @@ const App: React.FC = () => {
               const name = prompt("Enter month name:");
               if (!name) return;
               
+              // For expected hours, only ask for whole hours
               const expectedHours = parseInt(prompt("Enter expected hours:") || "0", 10);
-              const expectedMinutes = parseInt(prompt("Enter expected minutes:") || "0", 10);
-              if (isNaN(expectedHours) || isNaN(expectedMinutes)) return;
+              if (isNaN(expectedHours)) return;
               
+              // For actual hours, ask for both hours and minutes
               const actualHours = parseInt(prompt("Enter actual hours:") || "0", 10);
               const actualMinutes = parseInt(prompt("Enter actual minutes:") || "0", 10);
               if (isNaN(actualHours) || isNaN(actualMinutes)) return;
               
-              // Convert to decimal hours
-              const expected = parseFloat((expectedHours + expectedMinutes / 60).toFixed(2));
+              // Convert to decimal hours (expected is whole number, actual has minutes)
+              const expected = expectedHours;
               const actual = parseFloat((actualHours + actualMinutes / 60).toFixed(2));
               
               setMonths([...months, {
@@ -276,9 +285,9 @@ const App: React.FC = () => {
               {months.map((month, index) => (
                 <tr key={index} className={theme.tableRow}>
                   <td className="px-6 py-4 whitespace-nowrap">{month.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{month.expected}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{month.actual}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{month.diff > 0 ? '+' : ''}{month.diff}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{formatTime(month.expected, false)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{formatTime(month.actual)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{month.diff > 0 ? '+' : ''}{formatTime(Math.abs(month.diff))}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleEditMonth(index)}

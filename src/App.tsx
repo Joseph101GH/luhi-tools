@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Clock, Settings, Moon, Sun, Save, Upload, Edit, Trash2, Plus } from 'lucide-react';
+import { Menu, X, Clock, Settings, Moon, Sun, Edit, Trash2, Plus } from 'lucide-react';
 
 interface MonthData {
   name: string;

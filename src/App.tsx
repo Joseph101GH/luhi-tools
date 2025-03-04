@@ -64,7 +64,10 @@ const App: React.FC = () => {
     accentText: 'text-emerald-500',
     toggleButton: darkMode 
       ? '!bg-gray-700 hover:!bg-gray-600 !text-white' 
-      : '!bg-amber-200 hover:!bg-amber-300 !text-gray-700'
+      : '!bg-amber-200 hover:!bg-amber-300 !text-gray-700',
+    // Colors for positive and negative values
+    positiveText: darkMode ? 'text-green-400' : 'text-green-600',
+    negativeText: darkMode ? 'text-red-400' : 'text-red-600'
   };
 
   // Function to edit a month
@@ -219,8 +222,8 @@ const App: React.FC = () => {
           </div>
           <div className={`${theme.statCard} p-4 rounded-lg shadow-md`}>
             <div className={theme.textMuted}>Balance</div>
-            <div className={`text-2xl font-medium ${theme.accentText}`}>
-              {totals.diff > 0 ? '+' : ''}{formatTime(Math.abs(totals.diff))}
+            <div className={`text-2xl font-medium ${totals.diff >= 0 ? theme.positiveText : theme.negativeText}`}>
+              {totals.diff > 0 ? '+' : (totals.diff < 0 ? '-' : '')}{formatTime(Math.abs(totals.diff))}
             </div>
           </div>
         </div>
@@ -287,7 +290,9 @@ const App: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{month.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{formatTime(month.expected, false)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{formatTime(month.actual)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{month.diff > 0 ? '+' : ''}{formatTime(Math.abs(month.diff))}</td>
+                  <td className={`px-6 py-4 whitespace-nowrap ${month.diff >= 0 ? theme.positiveText : theme.negativeText}`}>
+                    {month.diff > 0 ? '+' : (month.diff < 0 ? '-' : '')}{formatTime(Math.abs(month.diff))}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleEditMonth(index)}

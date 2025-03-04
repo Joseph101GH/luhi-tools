@@ -7,4 +7,7 @@ export default defineConfig({
   // Using proper repository name for GitHub Pages
   base: '/luhi-tools/',
   plugins: [react(), tailwindcss()],
+  build: {
+    outDir: 'docs',
+  },
 })

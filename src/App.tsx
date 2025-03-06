@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Menu, X, Clock, Settings, Moon, Sun, Edit, Trash2, Plus } from 'lucide-react';
 
 interface MonthData {
@@ -25,6 +25,7 @@ const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [months, setMonths] = useState<MonthData[]>([]);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const dragCounterRef = useRef(0);
 
   const tools = [
     { id: 'time', name: 'Time Calculator', icon: <Clock size={18} /> },
@@ -68,7 +69,10 @@ const App: React.FC = () => {
       : '!bg-amber-200 hover:!bg-amber-300 !text-gray-700',
     // Colors for positive and negative values
     positiveText: darkMode ? 'text-green-400' : 'text-green-600',
-    negativeText: darkMode ? 'text-red-400' : 'text-red-600'
+    negativeText: darkMode ? 'text-red-400' : 'text-red-600',
+    dropZoneBg: darkMode ? 'bg-green-900 bg-opacity-5' : 'bg-green-50 bg-opacity-10',
+    dropZoneBorder: darkMode ? 'border-green-600' : 'border-green-500',
+    dropZoneText: darkMode ? 'text-green-400' : 'text-green-600',
   };
 
   // Function to edit a month
@@ -357,24 +361,38 @@ const App: React.FC = () => {
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDraggingFile(true);
   }, []);
   
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Increment the counter when entering a new element
+    dragCounterRef.current += 1;
+    
+    // Always set dragging to true when entering
     setIsDraggingFile(true);
   }, []);
   
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDraggingFile(false);
+    
+    // Decrement the counter when leaving an element
+    dragCounterRef.current -= 1;
+    
+    // Only set dragging to false when all elements are left
+    if (dragCounterRef.current === 0) {
+      setIsDraggingFile(false);
+    }
   }, []);
   
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Reset counter and dragging state
+    dragCounterRef.current = 0;
     setIsDraggingFile(false);
     
     const files = e.dataTransfer.files;
@@ -409,15 +427,21 @@ const App: React.FC = () => {
     >
       {/* File Drop Overlay */}
       {isDraggingFile && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl shadow-lg text-center max-w-md mx-auto`}>
-            <div className={`text-5xl mb-4 ${theme.primaryText}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 21V9m0 0 4 4m-4-4-4 4m-5 8h14"></path>
+        <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div 
+            className={`w-5/6 h-5/6 max-w-5xl max-h-screen rounded-xl border-[6px] border-dashed ${theme.dropZoneBorder} flex flex-col items-center justify-center`}
+            style={{ backgroundColor: darkMode ? 'rgba(20, 83, 45, 0.5)' : 'rgba(240, 253, 244, 0.5)' }}
+          >
+            <div className={`text-6xl mb-6 ${theme.dropZoneText}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <path d="M12 12v6"/>
+                <path d="M9 15h6"/>
               </svg>
             </div>
-            <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>Drop JSON File Here</h2>
-            <p className={theme.textMuted}>Release to import your time data</p>
+            <h2 className={`text-3xl font-bold mb-3 ${theme.dropZoneText}`}>Drop JSON File Here</h2>
+            <p className={`text-xl ${theme.dropZoneText} opacity-80`}>Release to import your time data</p>
           </div>
         </div>
       )}

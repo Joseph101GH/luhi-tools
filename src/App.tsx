@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Menu, X, Clock, Settings, Moon, Sun, Edit, Trash2, Plus } from 'lucide-react';
 
 interface MonthData {
@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [activeTool, setActiveTool] = useState('time');
   const [darkMode, setDarkMode] = useState(false);
   const [months, setMonths] = useState<MonthData[]>([]);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   const tools = [
     { id: 'time', name: 'Time Calculator', icon: <Clock size={18} /> },
@@ -130,6 +131,28 @@ const App: React.FC = () => {
     linkElement.click();
   };
 
+  // Function to process imported file 
+  const processImportedFile = (file: File) => {
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      try {
+        const result = event.target?.result as string;
+        const data = JSON.parse(result);
+        
+        if (data && Array.isArray(data.months)) {
+          setMonths(data.months);
+        } else {
+          alert('Invalid file format. Expected a JSON with a months array.');
+        }
+      } catch (error) {
+        alert('Error parsing the file: ' + error);
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+
   const handleImportData = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -140,24 +163,7 @@ const App: React.FC = () => {
       if (!target.files?.length) return;
       
       const file = target.files[0];
-      const reader = new FileReader();
-      
-      reader.onload = (event) => {
-        try {
-          const result = event.target?.result as string;
-          const data = JSON.parse(result);
-          
-          if (data && Array.isArray(data.months)) {
-            setMonths(data.months);
-          } else {
-            alert('Invalid file format. Expected a JSON with a months array.');
-          }
-        } catch (error) {
-          alert('Error parsing the file: ' + error);
-        }
-      };
-      
-      reader.readAsText(file);
+      processImportedFile(file);
     };
     
     input.click();
@@ -205,11 +211,21 @@ const App: React.FC = () => {
         </div>
       </div>
       
+      {/* Tip Box */}
+      <div className={`${theme.tipBg} p-4 rounded-lg mb-6 shadow-inner flex items-center gap-3`}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={theme.tipText}>
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span className={theme.tipText}>You can drag and drop a JSON file anywhere on this page to import your time data.</span>
+      </div>
+      
       <div className={`${darkMode ? 'bg-gradient-to-r from-gray-700 to-gray-800' : 'bg-gradient-to-r from-amber-100 to-orange-100'} p-6 rounded-xl mb-8 shadow-md`}>
         <h3 className={`text-lg font-medium ${theme.text} mb-4`}>Year Overview</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className={`${theme.statCard} p-4 rounded-lg shadow-md`}>
-            <div className={theme.textMuted}>Total Days</div>
+            <div className={theme.textMuted}>Total Months</div>
             <div className={`text-2xl font-medium ${theme.text}`}>{totalDays}</div>
           </div>
           <div className={`${theme.statCard} p-4 rounded-lg shadow-md`}>
@@ -337,6 +353,41 @@ const App: React.FC = () => {
     </div>
   );
 
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(true);
+  }, []);
+  
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(true);
+  }, []);
+  
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+  }, []);
+  
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type === 'application/json' || file.name.endsWith('.json')) {
+        processImportedFile(file);
+      } else {
+        alert('Please drop a JSON file');
+      }
+    }
+  }, []);
+
   const renderContent = () => {
     switch (activeTool) {
       case 'time':
@@ -349,7 +400,28 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-screen w-screen ${theme.bg}`}>
+    <div 
+      className={`flex h-screen w-screen ${theme.bg} relative`}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* File Drop Overlay */}
+      {isDraggingFile && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-6 rounded-xl shadow-lg text-center max-w-md mx-auto`}>
+            <div className={`text-5xl mb-4 ${theme.primaryText}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 21V9m0 0 4 4m-4-4-4 4m-5 8h14"></path>
+              </svg>
+            </div>
+            <h2 className={`text-2xl font-bold mb-2 ${theme.text}`}>Drop JSON File Here</h2>
+            <p className={theme.textMuted}>Release to import your time data</p>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col ${theme.sidebar} transition-all duration-300 ease-in-out z-10 shadow-md`}>
         <div className="flex justify-between items-center p-4 border-b border-opacity-20 border-gray-400">
